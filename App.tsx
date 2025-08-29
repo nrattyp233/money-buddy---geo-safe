@@ -379,4 +379,7 @@ const App: React.FC = () => {
                     </Routes>
                 </div>
             </Router>
+        </div>
+    );
+}
 export default App;
