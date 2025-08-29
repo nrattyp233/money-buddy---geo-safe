@@ -319,72 +319,64 @@ const App: React.FC = () => {
                 notificationCount={notificationCount}
                 onBellClick={() => setIsNotificationsOpen(!isNotificationsOpen)}
             />
-            {isNotificationsOpen && user?.email && (
-                <NotificationsPanel 
-                    transactions={transactions}
-                    lockedSavings={lockedSavings}
-                    currentUserEmail={user.email}
-                    onApproveRequest={handleApproveRequest}
-                    onDeclineRequest={handleDeclineRequest}
-                    onWithdraw={handleWithdraw}
-                    onClose={() => setIsNotificationsOpen(false)}
-                />
-            )}
-            <main className="p-4 md:p-8 space-y-8">
-                <BalanceSummary accounts={accounts} onConnectClick={() => setIsConnectAccountModalOpen(true)} />
-
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-4 p-2 bg-black/20 rounded-xl">
-                    <button onClick={() => setActiveTab('send')} className={`${tabStyle} ${activeTab === 'send' ? activeTabStyle : inactiveTabStyle}`}>Send</button>
-                    <button onClick={() => setActiveTab('request')} className={`${tabStyle} ${activeTab === 'request' ? activeTabStyle : inactiveTabStyle}`}>Request</button>
-                    <button onClick={() => setActiveTab('lock')} className={`${tabStyle} ${activeTab === 'lock' ? activeTabStyle : inactiveTabStyle}`}>Lock</button>
-                    <button onClick={() => setActiveTab('history')} className={`${tabStyle} ${activeTab === 'history' ? activeTabStyle : inactiveTabStyle}`}>History</button>
-                </div>
-
-                <div className="animate-fade-in-up">
-                    {activeTab === 'send' && <SendMoney accounts={accounts} onSend={handleSendMoney} />}
-                    {activeTab === 'request' && <RequestMoney onRequest={handleRequestMoney} />}
-                    {activeTab === 'lock' && <LockedSavings accounts={accounts} lockedSavings={lockedSavings} onLock={handleLock} onWithdraw={handleWithdraw} />}
-                    {activeTab === 'history' && user?.email && (
-                        <TransactionHistory 
-                            transactions={transactions} 
+            <Router>
+                <div className="app-container">
+                    <nav style={{ textAlign: 'right', margin: '16px 0' }}>
+                        <Link to="/privacy-policy">Privacy Policy</Link>
+                    </nav>
+                    {isNotificationsOpen && user?.email && (
+                        <NotificationsPanel 
+                            transactions={transactions}
+                            lockedSavings={lockedSavings}
                             currentUserEmail={user.email}
-                            onTransactionClick={setSelectedTransaction}
                             onApproveRequest={handleApproveRequest}
                             onDeclineRequest={handleDeclineRequest}
+                            onWithdraw={handleWithdraw}
+                            onClose={() => setIsNotificationsOpen(false)}
                         />
                     )}
+                    <Routes>
+                        <Route path="/" element={
+                            <main className="p-4 md:p-8 space-y-8">
+                                <BalanceSummary accounts={accounts} onConnectClick={() => setIsConnectAccountModalOpen(true)} />
+                                <div className="grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-4 p-2 bg-black/20 rounded-xl">
+                                    <button onClick={() => setActiveTab('send')} className={`${tabStyle} ${activeTab === 'send' ? activeTabStyle : inactiveTabStyle}`}>Send</button>
+                                    <button onClick={() => setActiveTab('request')} className={`${tabStyle} ${activeTab === 'request' ? activeTabStyle : inactiveTabStyle}`}>Request</button>
+                                    <button onClick={() => setActiveTab('lock')} className={`${tabStyle} ${activeTab === 'lock' ? activeTabStyle : inactiveTabStyle}`}>Lock</button>
+                                    <button onClick={() => setActiveTab('history')} className={`${tabStyle} ${activeTab === 'history' ? activeTabStyle : inactiveTabStyle}`}>History</button>
+                                </div>
+                                <div className="animate-fade-in-up">
+                                    {activeTab === 'send' && <SendMoney accounts={accounts} onSend={handleSendMoney} />}
+                                    {activeTab === 'request' && <RequestMoney onRequest={handleRequestMoney} />}
+                                    {activeTab === 'lock' && <LockedSavings accounts={accounts} lockedSavings={lockedSavings} onLock={handleLock} onWithdraw={handleWithdraw} />}
+                                    {activeTab === 'history' && user?.email && (
+                                        <TransactionHistory 
+                                            transactions={transactions} 
+                                            currentUserEmail={user.email}
+                                            onTransactionClick={setSelectedTransaction}
+                                            onApproveRequest={handleApproveRequest}
+                                            onDeclineRequest={handleDeclineRequest}
+                                        />
+                                    )}
+                                </div>
+                                <SecurityTip />
+                                <Modal isOpen={isProfileModalOpen} onClose={() => setIsProfileModalOpen(false)}>
+                                    <ProfileSettings user={user} />
+                                </Modal>
+                                <ConnectAccountModal 
+                                    isOpen={isConnectAccountModalOpen}
+                                    onClose={() => setIsConnectAccountModalOpen(false)}
+                                    onConnectionSuccess={handleConnectionSuccess}
+                                />
+                                <TransactionDetailModal
+                                    isOpen={!!selectedTransaction}
+                                    onClose={() => setSelectedTransaction(null)}
+                                    transaction={selectedTransaction}
+                                />
+                            </main>
+                        } />
+                        <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+                    </Routes>
                 </div>
-
-                <SecurityTip />
-            return (
-                <Router>
-                    <div className="app-container">
-                        <Header onProfileClick={() => setIsProfileModalOpen(true)} onNotificationsClick={() => setIsNotificationsOpen(true)} />
-                        <nav style={{ textAlign: 'right', margin: '16px 0' }}>
-                            <Link to="/privacy-policy">Privacy Policy</Link>
-                        </nav>
-                        <Routes>
-                            <Route path="/" element={
-                                <>
-                                    {/* ...existing main app code... */}
-                                    <Modal isOpen={isProfileModalOpen} onClose={() => setIsProfileModalOpen(false)}>
-                                        <ProfileSettings user={user} />
-                                    </Modal>
-                                    <ConnectAccountModal 
-                                        isOpen={isConnectAccountModalOpen}
-                                        onClose={() => setIsConnectAccountModalOpen(false)}
-                                        onConnectionSuccess={handleConnectionSuccess}
-                                    />
-                                    <TransactionDetailModal
-                                        isOpen={!!selectedTransaction}
-                                        onClose={() => setSelectedTransaction(null)}
-                                        transaction={selectedTransaction}
-                                    />
-                                </>
-                            } />
-                            <Route path="/privacy-policy" element={<PrivacyPolicy />} />
-                        </Routes>
-                    </div>
-                </Router>
-            );
+            </Router>
 export default App;
