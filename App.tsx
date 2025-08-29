@@ -1,4 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { BrowserRouter as Router, Route, Routes, Link } from 'react-router-dom';
+import PrivacyPolicy from './components/PrivacyPolicy';
 import { Account, Transaction, LockedSaving, TransactionStatus, GeoFence, TimeRestriction } from './types';
 import { EARLY_WITHDRAWAL_PENALTY_RATE } from './constants';
 import Header from './components/Header';
@@ -354,25 +356,35 @@ const App: React.FC = () => {
                 </div>
 
                 <SecurityTip />
-            </main>
-            
-            <Modal isOpen={isProfileModalOpen} onClose={() => setIsProfileModalOpen(false)} title="Profile & Settings">
-                 <ProfileSettings user={{ name: user.user_metadata?.name || 'User', email: user.email! }} />
-            </Modal>
-
-            <ConnectAccountModal 
-                isOpen={isConnectAccountModalOpen}
-                onClose={() => setIsConnectAccountModalOpen(false)}
-                onConnectionSuccess={handleConnectionSuccess}
-            />
-
-            <TransactionDetailModal
-                isOpen={!!selectedTransaction}
-                onClose={() => setSelectedTransaction(null)}
-                transaction={selectedTransaction}
-            />
-        </div>
-    );
-};
-
+            return (
+                <Router>
+                    <div className="app-container">
+                        <Header onProfileClick={() => setIsProfileModalOpen(true)} onNotificationsClick={() => setIsNotificationsOpen(true)} />
+                        <nav style={{ textAlign: 'right', margin: '16px 0' }}>
+                            <Link to="/privacy-policy">Privacy Policy</Link>
+                        </nav>
+                        <Routes>
+                            <Route path="/" element={
+                                <>
+                                    {/* ...existing main app code... */}
+                                    <Modal isOpen={isProfileModalOpen} onClose={() => setIsProfileModalOpen(false)}>
+                                        <ProfileSettings user={user} />
+                                    </Modal>
+                                    <ConnectAccountModal 
+                                        isOpen={isConnectAccountModalOpen}
+                                        onClose={() => setIsConnectAccountModalOpen(false)}
+                                        onConnectionSuccess={handleConnectionSuccess}
+                                    />
+                                    <TransactionDetailModal
+                                        isOpen={!!selectedTransaction}
+                                        onClose={() => setSelectedTransaction(null)}
+                                        transaction={selectedTransaction}
+                                    />
+                                </>
+                            } />
+                            <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+                        </Routes>
+                    </div>
+                </Router>
+            );
 export default App;
