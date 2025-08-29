@@ -1,0 +1,6 @@
+{
+  "name": "Money Buddy - Geo Safe",
+  "description": "A secure payment processing application with optional geofencing and time restrictions to better secure your transactions. It also includes a locked savings feature.",
+  "requestFramePermissions": [],
+  "prompt": ""
+}
