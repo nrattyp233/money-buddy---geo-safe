@@ -12,7 +12,7 @@ import Modal from './components/Modal';
 import ProfileSettings from './components/ProfileSettings';
 import SecurityTip from './components/SecurityTip';
 import ConnectAccountModal from './components/ConnectAccountModal';
-import type { User as SupabaseUser } from 'https://esm.sh/@supabase/supabase-js@2';
+import type { User as SupabaseUser } from '@supabase/supabase-js';
 import NotificationsPanel from './components/NotificationsPanel';
 import RequestMoney from './components/RequestMoney';
 import TransactionDetailModal from './components/TransactionDetailModal';
