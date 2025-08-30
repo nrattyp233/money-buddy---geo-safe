@@ -2,6 +2,9 @@ import React, { useState } from 'react';
 import { Account, LockedSaving } from '../types';
 import { SAVINGS_LOCK_PERIODS, EARLY_WITHDRAWAL_PENALTY_RATE } from '../constants';
 import { LockIcon, AlertTriangleIcon } from './icons';
+import { loadStripe } from '@stripe/stripe-js';
+
+const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY);
 
 interface LockedSavingsProps {
     accounts: Account[];

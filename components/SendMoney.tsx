@@ -2,6 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { Account, GeoFence, TimeRestriction } from '../types';
 import { MapPinIcon, ClockIcon, SearchIcon } from './icons';
 import { MapContainer, TileLayer, Circle, useMap, useMapEvents } from 'react-leaflet';
+import { loadStripe } from '@stripe/stripe-js';
+
+const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY);
 
 interface SendMoneyProps {
     accounts: Account[];
