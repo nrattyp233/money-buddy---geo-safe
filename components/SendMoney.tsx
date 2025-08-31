@@ -3,6 +3,7 @@ import { Account, GeoFence, TimeRestriction } from '../types';
 import { MapPinIcon, ClockIcon, SearchIcon } from './icons';
 import { MapContainer, TileLayer, Circle, useMap, useMapEvents } from 'react-leaflet';
 import { loadStripe } from '@stripe/stripe-js';
+import { Elements, CardElement, useStripe, useElements } from '@stripe/react-stripe-js';
 
 const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY);
 
@@ -22,7 +23,7 @@ function ChangeView({ center, zoom }: { center: [number, number], zoom: number }
     return null;
 }
 
-const SendMoney: React.FC<SendMoneyProps> = ({ accounts, onSend }) => {
+const InnerSendForm: React.FC<SendMoneyProps> = ({ accounts, onSend }) => {
     const [fromAccountId, setFromAccountId] = useState(accounts[0]?.id || '');
     const [recipient, setRecipient] = useState('');
     const [amount, setAmount] = useState('');
@@ -80,7 +81,11 @@ const SendMoney: React.FC<SendMoneyProps> = ({ accounts, onSend }) => {
         }
     };
     
-    const handleSubmit = (e: React.FormEvent) => {
+    // We'll handle submit via Stripe Elements confirmation
+    const stripe = useStripe();
+    const elements = useElements();
+
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!fromAccountId || !recipient || !amount || parseFloat(amount) <= 0 || !description) {
             alert('Please fill all required fields correctly.');
@@ -110,10 +115,68 @@ const SendMoney: React.FC<SendMoneyProps> = ({ accounts, onSend }) => {
             timeRestriction = { expiresAt: expiryDate };
         }
 
-        onSend(fromAccountId, recipient, parseFloat(amount), description, geoFence, timeRestriction);
-        setRecipient('');
-        setAmount('');
-        setDescription('');
+        // Assumption: `recipient` is a receiver user id (UUID). If it's an email/username, replace this step with lookup.
+        const receiver_id = recipient;
+        const amount_cents = Math.round(parseFloat(amount) * 100);
+
+        try {
+            const resp = await fetch('/functions/v1/create-payment-intent', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ sender_id: fromAccountId, receiver_id, amount_cents, lat: markerPosition?.[0], lng: markerPosition?.[1] })
+            });
+            const data = await resp.json();
+            if (!resp.ok) {
+                console.error('create-payment-intent error', data);
+                alert(data?.error || 'Failed to create payment intent');
+                return;
+            }
+
+            const clientSecret = data.client_secret;
+            if (!clientSecret) {
+                alert('Payment could not be initialized.');
+                return;
+            }
+
+            if (!stripe || !elements) {
+                alert('Stripe has not loaded yet.');
+                return;
+            }
+
+            const card = elements.getElement(CardElement);
+            if (!card) {
+                alert('Please enter your card details.');
+                return;
+            }
+
+            const confirmResult = await stripe.confirmCardPayment(clientSecret, {
+                payment_method: {
+                    card,
+                    billing_details: { name: fromAccount?.name || undefined }
+                }
+            });
+
+            if (confirmResult.error) {
+                console.error(confirmResult.error);
+                alert(confirmResult.error.message || 'Payment failed');
+                return;
+            }
+
+            if (confirmResult.paymentIntent && confirmResult.paymentIntent.status === 'succeeded') {
+                // Notify parent and clear form
+                onSend(fromAccountId, recipient, parseFloat(amount), description, geoFence, timeRestriction);
+                setRecipient('');
+                setAmount('');
+                setDescription('');
+                alert('Payment succeeded');
+            } else {
+                alert('Payment processing, check dashboard for status.');
+            }
+
+        } catch (err) {
+            console.error(err);
+            alert('Unexpected error creating payment');
+        }
     };
 
     return (
@@ -209,6 +272,12 @@ const SendMoney: React.FC<SendMoneyProps> = ({ accounts, onSend }) => {
                     )}
                 </div>
 
+                <div>
+                    <label className="block text-sm font-medium text-gray-300 mb-2">Card details</label>
+                    <div className="p-3 bg-gray-800 rounded-md border border-gray-700">
+                        <CardElement options={{ hidePostalCode: true }} />
+                    </div>
+                </div>
                 <button type="submit" className="w-full bg-lime-500 hover:bg-lime-400 text-purple-900 font-bold py-3 px-4 rounded-lg transition-all duration-300 transform hover:scale-105 shadow-lg shadow-lime-500/20 flex items-center justify-center space-x-2">
                     <span>Send Payment</span>
                 </button>
@@ -216,5 +285,11 @@ const SendMoney: React.FC<SendMoneyProps> = ({ accounts, onSend }) => {
         </div>
     );
 };
+
+const SendMoney: React.FC<SendMoneyProps> = (props) => (
+    <Elements stripe={stripePromise}>
+        <InnerSendForm {...props} />
+    </Elements>
+);
 
 export default SendMoney;
