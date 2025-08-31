@@ -20,6 +20,17 @@ const ProfileSettings: React.FC<ProfileSettingsProps> = ({ user }) => {
         alert('Profile updated! (This is a demo)');
     };
 
+    const handleConnectStripe = async () => {
+        // Call our Edge Function to create an Express account link
+        const resp = await fetch('/.netlify/functions/create-express-account', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ user_id: user.email }) })
+        const data = await resp.json()
+        if (data && data.link && data.link.url) {
+            window.open(data.link.url, '_blank')
+        } else {
+            alert('Unable to create onboarding link')
+        }
+    }
+
     return (
         <div className="space-y-6 text-white">
             <div className="flex items-center space-x-4">
@@ -63,6 +74,9 @@ const ProfileSettings: React.FC<ProfileSettingsProps> = ({ user }) => {
                         className="bg-red-600 hover:bg-red-500 text-white font-bold py-2 px-6 rounded-lg transition-colors"
                      >
                         Sign Out
+                    </button>
+                    <button type="button" onClick={handleConnectStripe} className="bg-blue-600 hover:bg-blue-500 text-white font-bold py-2 px-6 rounded-lg transition-colors">
+                        Connect Stripe
                     </button>
                      <button type="submit" className="bg-lime-500 hover:bg-lime-400 text-purple-900 font-bold py-2 px-6 rounded-lg transition-colors">
                         Save Changes
