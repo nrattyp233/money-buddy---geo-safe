@@ -19,7 +19,7 @@ const ProfileSettings: React.FC<ProfileSettingsProps> = ({ user }) => {
 
   const handleConnectStripe = async () => {
     try {
-      const resp = await fetch('https://<your-project-ref>.functions.supabase.co/create-express-account', {
+  const resp = await fetch('https://thdmywgjbhdtgtqnqizn.functions.supabase.co/create-express-account', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
