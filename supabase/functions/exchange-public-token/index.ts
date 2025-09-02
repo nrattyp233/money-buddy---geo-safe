@@ -1,11 +1,7 @@
+
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 
-const PLAID_CLIENT_ID = Deno.env.get("PLAID_CLIENT_ID");
-const PLAID_SECRET = Deno.env.get("PLAID_SECRET");
-const PLAID_ENV = "sandbox"; // or "development" / "production"
-
-serve(async (req) => {
+export default async function handler(req: Request) {
   if (req.method === "OPTIONS") {
     return new Response(null, {
       status: 204,
@@ -16,6 +12,10 @@ serve(async (req) => {
       },
     });
   }
+
+  const PLAID_CLIENT_ID = process.env.PLAID_CLIENT_ID;
+  const PLAID_SECRET = process.env.PLAID_SECRET;
+  const PLAID_ENV = "sandbox"; // or "development" / "production"
 
   const { public_token } = await req.json();
   if (!public_token) {
@@ -46,4 +46,4 @@ serve(async (req) => {
       "Access-Control-Allow-Origin": "*",
     },
   });
-});
+}

@@ -2,6 +2,25 @@ import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 
 serve(async (req) => {
+  // Debug: log incoming request and Stripe key
+  try {
+    const STRIPE_SECRET = Deno.env.get("STRIPE_SECRET_KEY");
+    console.log("Loaded STRIPE_SECRET_KEY:", STRIPE_SECRET ? STRIPE_SECRET.slice(0,8) + "..." : "undefined");
+  } catch (e) {
+    console.error("Error loading STRIPE_SECRET_KEY:", e);
+  }
+  // Handle CORS preflight
+  if (req.method === "OPTIONS") {
+    return new Response(null, {
+      status: 204,
+      headers: {
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Methods": "POST, OPTIONS",
+        "Access-Control-Allow-Headers": "Content-Type, Authorization",
+      },
+    });
+  }
+
   try {
     const {
       user_id,
@@ -14,12 +33,20 @@ serve(async (req) => {
     if (!user_id) {
       return new Response(JSON.stringify({ error: "Missing user_id" }), {
         status: 400,
+        headers: {
+          "Access-Control-Allow-Origin": "*",
+        },
       });
     }
 
     const STRIPE_SECRET = Deno.env.get("STRIPE_SECRET_KEY");
     if (!STRIPE_SECRET) {
-      return new Response("Stripe secret not configured", { status: 500 });
+      return new Response("Stripe secret not configured", {
+        status: 500,
+        headers: {
+          "Access-Control-Allow-Origin": "*",
+        },
+      });
     }
 
     // Create Stripe account (in production, check DB for existing account ID)
@@ -38,7 +65,12 @@ serve(async (req) => {
     const acct = await acctRes.json();
     if (!acct || acct.error) {
       console.error("Stripe account creation error:", acct.error);
-      return new Response(JSON.stringify(acct), { status: 500 });
+      return new Response(JSON.stringify(acct), {
+        status: 500,
+        headers: {
+          "Access-Control-Allow-Origin": "*",
+        },
+      });
     }
 
     // Create onboarding link
@@ -60,18 +92,25 @@ serve(async (req) => {
 
     const link = await linkRes.json();
     if (!link || link.error) {
-      console.error("Stripe account link error:", link.error);
-      return new Response(JSON.stringify(link), { status: 500 });
+      console.error("Stripe account link error:", link?.error);
+      return new Response(JSON.stringify({ error: link?.error || 'No onboarding link returned' }), {
+        status: 500,
+        headers: {
+          "Access-Control-Allow-Origin": "*",
+        },
+      });
     }
 
     return new Response(
       JSON.stringify({
         account: acct,
+        link_url: link?.url || null,
         link,
       }),
       {
         headers: {
           "Content-Type": "application/json",
+          "Access-Control-Allow-Origin": "*",
         },
       }
     );
@@ -79,6 +118,9 @@ serve(async (req) => {
     console.error("Unhandled error:", err);
     return new Response(JSON.stringify({ error: String(err) }), {
       status: 500,
+      headers: {
+        "Access-Control-Allow-Origin": "*",
+      },
     });
   }
 });

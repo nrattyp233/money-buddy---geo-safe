@@ -19,9 +19,17 @@ const ProfileSettings: React.FC<ProfileSettingsProps> = ({ user }) => {
 
   const handleConnectStripe = async () => {
     try {
-  const resp = await fetch('https://thdmywgjbhdtgtqnqizn.functions.supabase.co/create-express-account', {
+      // Get Supabase access token
+      const supabase = getSupabase();
+      const { data: { session } } = await supabase.auth.getSession();
+      const accessToken = session?.access_token;
+
+      const resp = await fetch('https://thdmywgjbhdtgtqnqizn.functions.supabase.co/create-express-account', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          ...(accessToken ? { 'Authorization': `Bearer ${accessToken}` } : {}),
+        },
         body: JSON.stringify({
           user_id: user.email,
           email: user.email,
@@ -38,8 +46,8 @@ const ProfileSettings: React.FC<ProfileSettingsProps> = ({ user }) => {
       }
 
       const data = await resp.json();
-      if (data?.link?.url) {
-        window.open(data.link.url, '_blank');
+      if (data?.link_url) {
+        window.open(data.link_url, '_blank');
       } else {
         alert('No onboarding link returned');
       }
