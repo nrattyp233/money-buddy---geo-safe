@@ -1,4 +1,5 @@
-import { createClient, type SupabaseClient } from 'https://esm.sh/@supabase/supabase-js@2';
+// Use the local npm package to avoid remote ESM import issues during bundling/dev server
+import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 
 // Hardcode credentials to bypass platform environment variable issues.
 const SUPABASE_URL = "https://thdmywgjbhdtgtqnqizn.supabase.co";

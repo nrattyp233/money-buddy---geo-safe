@@ -17,6 +17,11 @@ const SecurityTip: React.FC = () => {
         fetchTip();
     }, []);
 
+    if (!isLoading && !tip) {
+        // No tip available (e.g., missing API key). Hide the component entirely.
+        return null;
+    }
+
     return (
         <div className="p-4 md:p-6 bg-blue-900/70 backdrop-blur-lg border border-blue-400/20 rounded-2xl shadow-xl space-y-4">
             <div className="flex items-center justify-between">
@@ -35,11 +40,9 @@ const SecurityTip: React.FC = () => {
             </div>
             {isLoading ? (
                 <div className="h-10 bg-gray-700/50 rounded-md animate-pulse"></div>
-            ) : (
-                 <p className="text-blue-100 leading-relaxed font-medium">
-                    "{tip}"
-                </p>
-            )}
+            ) : tip ? (
+                <p className="text-blue-100 leading-relaxed font-medium">{tip}</p>
+            ) : null}
         </div>
     );
 };
