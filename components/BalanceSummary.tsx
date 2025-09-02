@@ -5,6 +5,7 @@ import { PlusCircleIcon, BankIcon, StripeIcon, PayPalIcon, ChaseIcon, BankOfAmer
 interface BalanceSummaryProps {
   accounts: Account[];
   onConnectClick: () => void;
+  onRemoveAccount: (accountId: string) => void;
 }
 
 const getLogoForProvider = (provider: string) => {
@@ -19,7 +20,7 @@ const getLogoForProvider = (provider: string) => {
     }
 };
 
-const BalanceSummary: React.FC<BalanceSummaryProps> = ({ accounts, onConnectClick }) => {
+const BalanceSummary: React.FC<BalanceSummaryProps> = ({ accounts, onConnectClick, onRemoveAccount }) => {
   const totalBalance = accounts.reduce((sum, account) => sum + (account.balance || 0), 0);
 
   const formatCurrency = (amount: number | null) => {
@@ -38,7 +39,7 @@ const BalanceSummary: React.FC<BalanceSummaryProps> = ({ accounts, onConnectClic
       </p>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {accounts.map((account) => (
-          <div key={account.id} className="bg-gray-800 border border-white/10 p-4 rounded-xl shadow-lg transition-all duration-300 hover:bg-gray-700 hover:-translate-y-1">
+          <div key={account.id} className="bg-gray-800 border border-white/10 p-4 rounded-xl shadow-lg transition-all duration-300 hover:bg-gray-700 hover:-translate-y-1 relative">
             <div className="flex items-center justify-between mb-2">
               <span className="text-sm font-semibold text-gray-400">{account.name}</span>
               <div className="text-lime-400">
@@ -46,6 +47,11 @@ const BalanceSummary: React.FC<BalanceSummaryProps> = ({ accounts, onConnectClic
               </div>
             </div>
             <p className="text-2xl font-bold text-white tracking-tight">{formatCurrency(account.balance)}</p>
+            <button
+              className="absolute top-2 right-2 text-xs text-red-400 hover:text-red-600 bg-gray-900/80 rounded px-2 py-1"
+              title="Remove Account"
+              onClick={() => onRemoveAccount(account.id)}
+            >Remove</button>
           </div>
         ))}
          <button 

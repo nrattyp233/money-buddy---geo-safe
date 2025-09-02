@@ -22,6 +22,18 @@ import { getSupabase } from './services/supabase';
 type ActiveTab = 'send' | 'lock' | 'history' | 'request';
 
 const App: React.FC = () => {
+    const handleRemoveAccount = async (accountId: string) => {
+        if (!user) return;
+        const supabase = getSupabase();
+        try {
+            const { error } = await supabase.from('accounts').delete().eq('id', accountId);
+            if (error) throw error;
+            await fetchData();
+        } catch (error: any) {
+            console.error("Error removing account:", error);
+            alert(`Failed to remove account. Reason: ${error.message || 'An unknown error occurred.'}`);
+        }
+    };
     const [user, setUser] = useState<SupabaseUser | null>(null);
     const [loading, setLoading] = useState(true);
     const [accounts, setAccounts] = useState<Account[]>([]);
@@ -338,7 +350,7 @@ const App: React.FC = () => {
                     <Routes>
                         <Route path="/" element={
                             <main className="p-4 md:p-8 space-y-8">
-                                <BalanceSummary accounts={accounts} onConnectClick={() => setIsConnectAccountModalOpen(true)} />
+                                <BalanceSummary accounts={accounts} onConnectClick={() => setIsConnectAccountModalOpen(true)} onRemoveAccount={handleRemoveAccount} />
                                 <div className="grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-4 p-2 bg-black/20 rounded-xl">
                                     <button onClick={() => setActiveTab('send')} className={`${tabStyle} ${activeTab === 'send' ? activeTabStyle : inactiveTabStyle}`}>Send</button>
                                     <button onClick={() => setActiveTab('request')} className={`${tabStyle} ${activeTab === 'request' ? activeTabStyle : inactiveTabStyle}`}>Request</button>
