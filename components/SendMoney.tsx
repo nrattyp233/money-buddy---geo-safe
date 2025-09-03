@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Account, GeoFence, TimeRestriction } from '../types';
 import { MapPinIcon, ClockIcon, SearchIcon } from './icons';
 import { MapContainer, TileLayer, Circle, useMap, useMapEvents } from 'react-leaflet';
+// import PayPal SDK or use PayPal REST API for payouts
 
 interface SendMoneyProps {
     accounts: Account[];
@@ -77,7 +78,7 @@ const InnerSendForm: React.FC<SendMoneyProps> = ({ accounts, onSend }) => {
         }
     };
     
-    // PayPal payout only
+    // We'll handle submit via PayPal Payouts API
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -109,35 +110,27 @@ const InnerSendForm: React.FC<SendMoneyProps> = ({ accounts, onSend }) => {
             timeRestriction = { expiresAt: expiryDate };
         }
 
+        // Use PayPal Payouts API via backend function
         try {
-            const resp = await fetch(
-                'https://thdmywgjbhdtgtqnqizn.functions.supabase.co/paypal-payout', {
+            const resp = await fetch('/functions/v1/paypal-payout', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    sender_id: fromAccountId,
-                    receiver_email: recipient,
-                    amount: amount,
-                    currency: 'USD',
-                    note: description,
-                    geoFence,
-                    timeRestriction,
-                })
+                body: JSON.stringify({ sender_id: fromAccountId, recipient_email: recipient, amount: parseFloat(amount), description, geoFence, timeRestriction })
             });
             const data = await resp.json();
             if (!resp.ok) {
                 console.error('PayPal payout error', data);
-                alert(data?.error || 'Failed to send PayPal payout');
+                alert(data?.error || 'Failed to send payout');
                 return;
             }
             onSend(fromAccountId, recipient, parseFloat(amount), description, geoFence, timeRestriction);
             setRecipient('');
             setAmount('');
             setDescription('');
-            alert('PayPal payout sent successfully!');
+            alert('Payout succeeded');
         } catch (err) {
             console.error(err);
-            alert('Unexpected error sending PayPal payout');
+            alert('Unexpected error sending payout');
         }
     };
 
@@ -234,10 +227,7 @@ const InnerSendForm: React.FC<SendMoneyProps> = ({ accounts, onSend }) => {
                     )}
                 </div>
 
-                <div className="flex items-center space-x-2">
-                    <img src="https://www.paypalobjects.com/webstatic/icon/pp258.png" alt="PayPal" className="w-8 h-8" />
-                    <span className="text-lg font-bold text-blue-400">PayPal Payout</span>
-                </div>
+                {/* PayPal does not require card details in the frontend. */}
                 <button type="submit" className="w-full bg-lime-500 hover:bg-lime-400 text-purple-900 font-bold py-3 px-4 rounded-lg transition-all duration-300 transform hover:scale-105 shadow-lg shadow-lime-500/20 flex items-center justify-center space-x-2">
                     <span>Send Payment</span>
                 </button>
@@ -246,6 +236,8 @@ const InnerSendForm: React.FC<SendMoneyProps> = ({ accounts, onSend }) => {
     );
 };
 
-const SendMoney: React.FC<SendMoneyProps> = (props) => <InnerSendForm {...props} />;
+const SendMoney: React.FC<SendMoneyProps> = (props) => (
+    <InnerSendForm {...props} />
+);
 
 export default SendMoney;

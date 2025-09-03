@@ -1,6 +1,6 @@
 import React from 'react';
 import { Account } from '../types';
-import { PlusCircleIcon, BankIcon, StripeIcon, PayPalIcon, ChaseIcon, BankOfAmericaIcon, WellsFargoIcon, CapitalOneIcon } from './icons';
+import { PlusCircleIcon, BankIcon, PayPalIcon, ChaseIcon, BankOfAmericaIcon, WellsFargoIcon, CapitalOneIcon } from './icons';
 
 interface BalanceSummaryProps {
   accounts: Account[];
@@ -9,15 +9,14 @@ interface BalanceSummaryProps {
 }
 
 const getLogoForProvider = (provider: string) => {
-    switch(provider) {
-        case 'Chase': return <ChaseIcon className="w-6 h-6" />;
-        case 'Bank of America': return <BankOfAmericaIcon className="w-6 h-6" />;
-        case 'Wells Fargo': return <WellsFargoIcon className="w-6 h-6" />;
-        case 'Capital One': return <CapitalOneIcon className="w-6 h-6" />;
-        case 'Stripe': return <StripeIcon className="w-6 h-6" />;
-        case 'PayPal': return <PayPalIcon className="w-6 h-6" />;
-        default: return <BankIcon className="w-6 h-6" />;
-    }
+  switch(provider) {
+    case 'Chase': return <ChaseIcon className="w-6 h-6" />;
+    case 'Bank of America': return <BankOfAmericaIcon className="w-6 h-6" />;
+    case 'Wells Fargo': return <WellsFargoIcon className="w-6 h-6" />;
+    case 'Capital One': return <CapitalOneIcon className="w-6 h-6" />;
+    case 'PayPal': return <PayPalIcon className="w-6 h-6" />;
+    default: return <BankIcon className="w-6 h-6" />;
+  }
 };
 
 const BalanceSummary: React.FC<BalanceSummaryProps> = ({ accounts, onConnectClick, onRemoveAccount }) => {

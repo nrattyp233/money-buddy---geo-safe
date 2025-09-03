@@ -12,12 +12,6 @@ export default defineConfig(({ mode }) => {
         alias: {
           '@': path.resolve(__dirname, '.'),
         }
-      },
-      server: {
-        headers: {
-          'Content-Security-Policy': "default-src 'self'; connect-src * ws: wss:; worker-src 'self' blob:;",
-          'Permissions-Policy': "accelerometer=*, encrypted-media=*"
-        }
       }
     };
 });
